@@ -314,11 +314,11 @@ export default function BookingPage() {
     if (codes[0]?.code || codes[0]?.language_code) setLanguageCode(String(codes[0].code || codes[0].language_code));
   }, [selectedSession]);
 
-  // Fetch live available_seats from exam_reservations API for the selected session
+  // Fetch session detail (status + seats) for the selected session
   useEffect(() => {
     let active = true;
     (async () => {
-      if (!sessionId) { setLiveAvailableSeats(null); setLoadingSeats(false); return; }
+      if (!sessionId) { setLiveAvailableSeats(null); setLoadingSeats(false); setSessionDetail(null); return; }
       setLoadingSeats(true);
       const findSeats = (payload: any): number | null => {
         const findInNode = (n: any): number | null => {
@@ -341,9 +341,13 @@ export default function BookingPage() {
       };
       try {
         let seats: number | null = null;
-        // Try plural endpoint first (more reliable)
+        // getExamSessionById equivalent — primary source of truth for status + seats
         try {
           const r0: any = await api(`/exam-sessions/${encodeURIComponent(sessionId)}?locale=en`);
+          if (active) {
+            const node = r0?.exam_session || r0?.data?.exam_session || r0?.data || r0;
+            setSessionDetail(node);
+          }
           seats = findSeats(r0);
         } catch {}
         if (seats == null) {
