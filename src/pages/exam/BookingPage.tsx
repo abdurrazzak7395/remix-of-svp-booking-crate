@@ -254,17 +254,28 @@ export default function BookingPage() {
       }));
 
       // 2. Fallback: query local DB by site_id for any still-missing entries.
+      const sessionCandidateIds = (s: any): number[] => {
+        const ids = [
+          s?.site_id,
+          s?.test_center?.site_id,
+          s?.test_center?.id,
+          s?.test_center?.test_center_id,
+          s?.test_center_id,
+        ].map((v) => Number(v)).filter((n) => Number.isFinite(n) && n > 0);
+        return Array.from(new Set(ids));
+      };
       const dbMissing = Array.from(new Set(
-        sessions
-          .map((s: any) => ({ key: String(getCenterKey(s)), sid: Number(s?.site_id ?? s?.test_center?.site_id) }))
-          .filter((x) => x.key && !newMap.has(x.key) && Number.isFinite(x.sid) && x.sid > 0)
-          .map((x) => x.sid)
+        sessions.flatMap((s: any) => {
+          const key = String(getCenterKey(s));
+          if (!key || newMap.has(key)) return [];
+          return sessionCandidateIds(s);
+        })
       ));
       if (dbMissing.length) {
         const { data } = await supabase.from("test_centers").select("site_id, name").in("site_id", dbMissing);
         data?.forEach((row: any) => {
           sessions.forEach((s: any) => {
-            if (Number(s?.site_id ?? s?.test_center?.site_id) === Number(row.site_id)) {
+            if (sessionCandidateIds(s).includes(Number(row.site_id))) {
               const key = String(getCenterKey(s));
               if (key && !newMap.has(key)) { newMap.set(key, row.name); changed = true; }
             }
