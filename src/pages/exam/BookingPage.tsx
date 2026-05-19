@@ -73,8 +73,8 @@ export default function BookingPage() {
     [sessions, selectedCity]
   );
   const sessionsWithResolvedCenters = useMemo(
-    () => cityFilteredSessions.map((item) => resolveSessionCenter(item, testCenterMap, centerNameToSiteId, sessionIdToSiteId)),
-    [cityFilteredSessions, testCenterMap, centerNameToSiteId, sessionIdToSiteId]
+    () => cityFilteredSessions.map((item) => resolveSessionCenter(item, testCenterMap, centerNameToSiteId, sessionIdToSiteId, sectionRules)),
+    [cityFilteredSessions, testCenterMap, centerNameToSiteId, sessionIdToSiteId, sectionRules]
   );
   const centerOptions = useMemo(() => {
     const options = buildCenterOptions(sessionsWithResolvedCenters);
