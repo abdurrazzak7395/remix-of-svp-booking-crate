@@ -7,6 +7,8 @@ import { MemoryRouter } from "react-router-dom";
 // Mock the SVP/api gateway. Drive responses based on the URL.
 vi.mock("@/lib/api", () => {
   const api = vi.fn(async (path: string) => {
+    // eslint-disable-next-line no-console
+    console.log("API CALL:", path);
     if (path.startsWith("/occupations")) {
       return {
         data: [
