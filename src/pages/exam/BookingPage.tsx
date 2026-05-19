@@ -266,6 +266,8 @@ export default function BookingPage() {
           const name = tc?.name || tc?.test_center_name || node?.test_center_name;
           if (!name) return;
           const sess = sessions.find((s: any) => String(getSessionId(s)) === id);
+          const sessionKey = `session:${id}`;
+          if (!newMap.has(sessionKey)) { newMap.set(sessionKey, name); changed = true; }
           const key = String(getCenterKey(sess));
           if (key && !newMap.has(key)) { newMap.set(key, name); changed = true; }
           const detailKey = String(getCenterKey({ ...sess, ...node, test_center: { ...sess?.test_center, ...tc } }));
