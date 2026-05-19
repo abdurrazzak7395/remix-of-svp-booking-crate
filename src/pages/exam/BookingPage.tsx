@@ -25,6 +25,8 @@ export default function BookingPage() {
   const [centerNameToSiteId, setCenterNameToSiteId] = useState<Map<string, string>>(new Map());
   // exam_session_id -> site_id (admin-defined deterministic mapping via Lovable Cloud).
   const [sessionIdToSiteId, setSessionIdToSiteId] = useState<Map<string, string>>(new Map());
+  // Section rules — deterministic fallback for sessions whose site_id changes daily.
+  const [sectionRules, setSectionRules] = useState<SectionCenterRule[]>([]);
   const [selectedOccupationId, setSelectedOccupationId] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [availableDate, setAvailableDate] = useState("");
