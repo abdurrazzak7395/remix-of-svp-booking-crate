@@ -23,6 +23,8 @@ export default function BookingPage() {
   // name (lowercased) -> site_id, resolved from local DB so we can stamp site_id
   // on sessions when SVP returns site_id=null.
   const [centerNameToSiteId, setCenterNameToSiteId] = useState<Map<string, string>>(new Map());
+  // exam_session_id -> site_id (admin-defined deterministic mapping via Lovable Cloud).
+  const [sessionIdToSiteId, setSessionIdToSiteId] = useState<Map<string, string>>(new Map());
   const [selectedOccupationId, setSelectedOccupationId] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [availableDate, setAvailableDate] = useState("");
