@@ -13,6 +13,7 @@ import {
 import { getCachedCenter, setCachedCenter, CachedCenter } from "@/lib/revealed-centers-cache";
 import { deepFindTestCenter as deepFindTestCenterShared, RevealedCenter as RevealedCenterShared } from "@/lib/deep-find-test-center";
 import { autoRevealMissingCenters } from "@/lib/auto-reveal-cache-misses";
+import { toast } from "@/components/ui/sonner";
 
 // Walks a nested SVP reservation/session response looking for the
 // authoritative `test_center` object (the one with a real
@@ -170,7 +171,29 @@ export default function BookingPage() {
         // Caps at 15 reveals with 10s spacing so we never trigger SVP's
         // per-category cooldown for the active user.
         if (unique.length > 0) {
-          void autoRevealMissingCenters().catch(() => { /* silent background failure */ });
+          void autoRevealMissingCenters({
+            onReveal: (centre, count) => {
+              // Mini live tick — keep it subtle but show progress.
+              if (count === 1) {
+                toast.message("🤖 Smart cache warming up", {
+                  description: `Discovered ${centre.name} (${centre.city}). Working in the background…`,
+                });
+              }
+            },
+            onComplete: (result) => {
+              if (result.succeeded > 0) {
+                const noun = result.succeeded === 1 ? "centre" : "centres";
+                toast.success(`🤖 ${result.succeeded} new ${noun} added to community cache`, {
+                  description: result.stoppedReason === "rate_limit"
+                    ? "Paused early because of SVP cooldown — will continue on your next visit."
+                    : "Future bookings for these slots will be instant — no draft needed.",
+                  duration: 6000,
+                  // data-testid attached via id so QA/testing-agent can target the toast container
+                  id: "auto-reveal-complete-toast",
+                });
+              }
+            },
+          }).catch(() => { /* silent background failure */ });
         }
       } catch (err: any) { setError(err?.message || "Failed to load occupations"); }
       finally { setLoadingOccupations(false); }

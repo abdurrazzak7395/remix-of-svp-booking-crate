@@ -201,3 +201,55 @@ describe("_internal helpers", () => {
     expect(_internal.extractLanguageCode({})).toBe("OFFII");
   });
 });
+
+describe("autoRevealMissingCenters callbacks", () => {
+  it("invokes onReveal callback per successful reveal and onComplete at end", async () => {
+    apiMock.mockResolvedValueOnce({
+      occupations: [{ id: 100, category: { id: 5, prometric_codes: [{ code: "OFFII" }] } }],
+    });
+    apiMock.mockResolvedValueOnce({
+      exam_sessions: [
+        { city: "Dhaka", start_date_in_browser_time_zone: "2026-07-01" },
+        { city: "Chattogram", start_date_in_browser_time_zone: "2026-07-02" },
+      ],
+    });
+    for (let i = 0; i < 2; i++) {
+      apiMock.mockResolvedValueOnce({ exam_sessions: [{ id: `enc-${i}` }] });
+      apiMock.mockResolvedValueOnce({ id: 99999 });
+      apiMock.mockResolvedValueOnce(realCentreReservationResponse(`c-${i}`, `Centre ${i}`));
+    }
+    const onReveal = vi.fn();
+    const onComplete = vi.fn();
+    const promise = autoRevealMissingCenters({ onReveal, onComplete });
+    await vi.runAllTimersAsync();
+    const r = await promise;
+    expect(r.succeeded).toBe(2);
+    expect(onReveal).toHaveBeenCalledTimes(2);
+    expect(onReveal.mock.calls[0][1]).toBe(1);
+    expect(onReveal.mock.calls[1][1]).toBe(2);
+    expect(onReveal.mock.calls[0][0].name).toBe("Centre 0");
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete.mock.calls[0][0]).toMatchObject({ succeeded: 2, attempted: 2 });
+  });
+
+  it("callback throw must not crash the loop", async () => {
+    apiMock.mockResolvedValueOnce({
+      occupations: [{ id: 100, category: { id: 5, prometric_codes: [{ code: "OFFII" }] } }],
+    });
+    apiMock.mockResolvedValueOnce({
+      exam_sessions: [{ city: "Dhaka", start_date_in_browser_time_zone: "2026-07-01" }],
+    });
+    apiMock.mockResolvedValueOnce({ exam_sessions: [{ id: "enc-1" }] });
+    apiMock.mockResolvedValueOnce({ id: 1 });
+    apiMock.mockResolvedValueOnce(realCentreReservationResponse("c-1"));
+    const onReveal = vi.fn(() => { throw new Error("ui broke"); });
+    const onComplete = vi.fn(() => { throw new Error("ui broke too"); });
+    const promise = autoRevealMissingCenters({ onReveal, onComplete });
+    await vi.runAllTimersAsync();
+    const r = await promise;
+    expect(r.succeeded).toBe(1);
+    expect(r.attempted).toBe(1);
+    expect(onReveal).toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalled();
+  });
+});

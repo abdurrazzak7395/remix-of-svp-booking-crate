@@ -107,8 +107,15 @@ User language: Bengali (technical terms in English).
 - Ops tool: `/tmp/bulk_reveal_deep.py` — iterates EVERY (city, date) per category, skips cached keys (idempotent re-run). Used for one-off back-fills with elevated SVP accounts. Honours SVP cooldown by moving on after a 422.
 - Tests: `/app/frontend/src/lib/auto-reveal-cache-misses.test.ts` — 9 vitest cases covering sessionStorage guard, no-token short-circuit, hard-cap behaviour (20 candidates → 15 attempts), Supabase cache-hit filtering, SVP 422 short-circuit, and internal helper unit tests. Total: 89/89 vitest pass.
 
+## TOAST NOTIFICATION + RESCHEDULE LOCK-IN (2026-06-18)
+- BookingPage now shows a sonner toast when the background auto-reveal succeeds:
+  - First reveal → subtle info toast `"🤖 Smart cache warming up — Discovered <Centre> (<City>)"`.
+  - On completion → success toast `"🤖 N new centre(s) added to community cache"` (id: `auto-reveal-complete-toast`). When stopped by SVP cooldown, the description reads "Paused early because of SVP cooldown — will continue on your next visit."
+- `autoRevealMissingCenters` now accepts `onReveal(centre, cumulativeCount)` + `onComplete(result)` callbacks. Callbacks that throw are isolated — the loop continues normally (2 dedicated regression tests).
+- New regression suite `BookingPage.reschedule-payload.test.ts` (4 tests) locks in the reschedule POST body contract: `{id, exam_session_id, language_code}` ONLY — no site_id/site_city/hold_id/occupation_id override. Same encrypted-token passthrough as the new-booking path so the rescheduled reservation lands in the centre bound to the chosen `exam_session_id`.
+
 ## Current Test Status
-- 89/89 Vitest tests passing across 15 suites (verified 2026-06-18 after auto-reveal feature).
+- 95/95 Vitest tests passing across 16 suites (verified 2026-06-18 after toast + reschedule lock-in).
 
 ## Backlog
 - P2 — Obtain fresh SVP API Bearer token for live e2e verification (current Postman token returns 401).

@@ -155,7 +155,11 @@ export async function revealOneCandidate(c: RevealCandidate): Promise<RevealedCe
 }
 
 export async function autoRevealMissingCenters(
-  opts: { force?: boolean } = {},
+  opts: {
+    force?: boolean;
+    onReveal?: (centre: RevealedCenter, cumulativeCount: number) => void;
+    onComplete?: (result: AutoRevealResult) => void;
+  } = {},
 ): Promise<AutoRevealResult> {
   // One-per-tab guard
   if (typeof window !== "undefined" && !opts.force) {
@@ -222,7 +226,12 @@ export async function autoRevealMissingCenters(
     const c = toReveal[i];
     try {
       const centre = await revealOneCandidate(c);
-      if (centre) succeeded++; else failed++;
+      if (centre) {
+        succeeded++;
+        try { opts.onReveal?.(centre, succeeded); } catch { /* callback failure must not break the loop */ }
+      } else {
+        failed++;
+      }
     } catch (err: any) {
       if (err?.isCooldown) {
         stoppedReason = "rate_limit";
@@ -237,7 +246,9 @@ export async function autoRevealMissingCenters(
     }
   }
 
-  return { attempted: toReveal.length, succeeded, failed, stoppedReason };
+  const result: AutoRevealResult = { attempted: toReveal.length, succeeded, failed, stoppedReason };
+  try { opts.onComplete?.(result); } catch { /* swallow */ }
+  return result;
 }
 
 // Test-friendly export bundle so the regression suite can stub api() and
