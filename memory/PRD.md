@@ -36,6 +36,16 @@ User language: Bengali (technical terms in English).
 - 2026-02 — BookingPage `createHold` now sends ONLY the selected `exam_session_id` (was sending every session in the city). Regression test: `BookingPage.create-hold.test.ts`.
 - 2026-02 — **BookingPage new-booking POST now mirrors the official SVP frontend confirm step**: `site_id: null`, `site_city: null`, `hold_id: null`. Previously stale UI fallbacks (e.g. `site_id: 1` for Dhaka) were forwarded and SVP used them as an override, causing the reservation to land at a DIFFERENT centre in the same city. Captured via network trace of `svp-international.pacc.sa`. Regression test: `BookingPage.reservation-payload.test.ts`.
 
+## LIVE PROOF OF BOOKING FIX (2026-06-18, real SVP session)
+- Logged into live `llwquxmlsdmdtmmktqqe.supabase.co` (Supabase project that hosts the live svp-proxy/svp-auth functions). Updated `/app/frontend/.env` accordingly. Created Access Control USER `e1-verifier@example.com / E1Verify#2026` (ACTIVE).
+- Real SVP OTP login: `mdrahadulislamsvp55445@yopmail.com` → OTP `095063` → SVP access token (15-min) obtained via `/svp-auth/otp-verify`.
+- LIVE EVIDENCE — pre-booking SVP responses hide the real centre exactly as PRD warns:
+  - `GET /exam-sessions?category_id=160&city=Dhaka&exam_date=2026-06-20` → `{test_center: {name: "Dhaka Center", test_center_id: null, site_id: null}, available_seats: null}` for every Dhaka session.
+- LIVE EVIDENCE — booking with the FIXED payload reveals the REAL centre:
+  - `POST /temporary-seats` (encrypted session id) → hold #3928810 (numeric session 1556652).
+  - `POST /exam-reservations` with body `{exam_session_id: <enc>, occupation_id: 2125, methodology: "in_person", language_code: "OFFII", site_id: null, site_city: null, hold_id: null}` → reservation #4327062 with `test_center: {name: "Narsingdi Technical Training Center", test_center_id: 218, address: "Shibpur, Narsingdi", city: "Dhaka"}`.
+- Conclusion: the booking POST that uses `site_id: null, site_city: null, hold_id: null` (our fix) lets SVP bind the reservation to the real `exam_session_id`-derived centre instead of overriding from stale UI hints. Draft auto-expires in ~20 min — no money spent.
+
 ## Current Test Status
 - 56/56 Vitest tests passing across 11 suites.
 
