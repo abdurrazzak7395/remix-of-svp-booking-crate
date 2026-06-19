@@ -2,9 +2,12 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 function getBaseUrl() {
-  if (SUPABASE_URL) return `${SUPABASE_URL}/functions/v1`;
-  // fallback to Railway if no Supabase URL
-  return "https://aci-api-production.up.railway.app";
+  if (!SUPABASE_URL) {
+    throw new Error(
+      "VITE_SUPABASE_URL is not set. Configure it in your environment (.env locally, deploy platform vars in production).",
+    );
+  }
+  return `${SUPABASE_URL}/functions/v1`;
 }
 
 const BASE = getBaseUrl();
