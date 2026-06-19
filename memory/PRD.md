@@ -128,8 +128,27 @@ User language: Bengali (technical terms in English).
 - **`/app/frontend/.env.example`** — paste-ready template for Vercel env vars. Documents both Supabase-only and dual-backend modes.
 - **`/app/.github/workflows/ci.yml`** — GitHub Actions CI: runs `yarn test --run` (95 vitest) + `yarn build` on every push / PR to main. Uploads dist artifact for 7 days. Catches broken commits BEFORE Vercel deploys.
 
+## PRODUCTION DEPLOYED + LIVE E2E PASS (2026-06-19)
+- **Production URL**: https://remix-of-svp-booking-crate.vercel.app/ (Vercel, Supabase Edge Functions backend)
+- **Bundle**: `assets/index-C9x3-O2A.js` — embeds correct `qdlqrsvkenalwhmfdbaf.supabase.co`, NO Railway URL.
+- **Live full E2E flow PASSED**:
+  1. ✅ `/access/login` direct URL → 200 (SPA rewrites working via `vercel.json`)
+  2. ✅ Access-control user login → `access-auth/login` 200
+  3. ✅ SVP credentials submit → `svp-auth/login` 200 (OTP sent to Yopmail)
+  4. ✅ OTP `051968` verify → redirected to `/dashboard`
+  5. ✅ Dashboard renders with account info (`mdselmiahsvp35656@yopmail.com Labor`)
+  6. ✅ Booking page renders "Create New Booking" modal
+  7. ✅ Auto-reveal Phase 1 actively running: 15+ `/available-dates` calls observed in background (cat IDs 13, 18, 29, 44, 46, 47, 54, 60, 64, 65, 67, 156, 163, 169, 170)
+  8. ✅ Boot diagnostic firing: `[supabase] connecting to https://qdlqrsvkenalwhmfdbaf.supabase.co`
+  9. ✅ Auto-reveal completed gracefully with 0 reveals (all candidates already in cache from prior bulk-reveal sessions). NO unnecessary draft reservations created. Toast correctly suppressed (`if succeeded > 0` guard prevents UX noise).
+- **Vercel config issues fixed**:
+  - Original deploy was hitting old Supabase project `ejuwzinppyazxzfdydkg`. Resolved by updating env vars + clean rebuild (cache bypassed via source-hash bump from added diagnostic console.info).
+  - `VITE_BACKEND_URL` was pointing to dead Railway service causing CORS errors. Deleted → app correctly falls back to Supabase Edge Functions.
+- **Final supporting changes this session**: dual-backend support in `api.ts`, `vercel.json` SPA rewrites + asset caching, `.env.example` template, `.github/workflows/ci.yml` GHA CI pipeline, `DEPLOYMENT.md` step-by-step guide, runtime diagnostic console.info in `supabase/client.ts`.
+
 ## Current Test Status
-- 95/95 Vitest tests passing across 16 suites (verified 2026-06-19 after best-way setup complete).
+- 95/95 Vitest tests passing across 16 suites.
+- Production live verification on Vercel: 8/8 flow checks pass.
 
 ## Backlog
 - P2 — Obtain fresh SVP API Bearer token for live e2e verification (current Postman token returns 401).
