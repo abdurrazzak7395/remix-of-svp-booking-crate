@@ -114,8 +114,16 @@ User language: Bengali (technical terms in English).
 - `autoRevealMissingCenters` now accepts `onReveal(centre, cumulativeCount)` + `onComplete(result)` callbacks. Callbacks that throw are isolated — the loop continues normally (2 dedicated regression tests).
 - New regression suite `BookingPage.reschedule-payload.test.ts` (4 tests) locks in the reschedule POST body contract: `{id, exam_session_id, language_code}` ONLY — no site_id/site_city/hold_id/occupation_id override. Same encrypted-token passthrough as the new-booking path so the rescheduled reservation lands in the centre bound to the chosen `exam_session_id`.
 
+## DEPLOYMENT READINESS (2026-06-19)
+- `/app/frontend/src/lib/api.ts` now supports **dual-backend**: `VITE_BACKEND_URL` (highest priority, e.g. Railway) → fallback to `${VITE_SUPABASE_URL}/functions/v1` → throw if neither set (fail-fast).
+- Created `/app/frontend/vercel.json` with Vite framework preset, `yarn build` → `dist`, SPA rewrite for client-side routing, immutable cache headers for `/assets/*`.
+- Created `/app/DEPLOYMENT.md` — Vercel setup guide, env var matrix, Railway health check curl, .gitignore guarantees, troubleshooting.
+- Live check of `https://remix-of-svp-booking-crate-production.up.railway.app`: HTTP 502 "Application failed to respond" — Railway service is currently DOWN. User must wake it from Railway dashboard OR omit `VITE_BACKEND_URL` in Vercel (Supabase fallback is fully functional).
+- `.gitignore` cleaned: removed triplicate `.env` blocks + stray `-e ` shell artifact. One canonical credential-exclusion block remains. All `.env*` excluded so push is safe.
+- Build still ✓ (6.19s, 1735 modules). **95/95 vitest tests pass**.
+
 ## Current Test Status
-- 95/95 Vitest tests passing across 16 suites (verified 2026-06-18 after toast + reschedule lock-in).
+- 95/95 Vitest tests passing across 16 suites (verified 2026-06-19 after dual-backend + Vercel config).
 
 ## Backlog
 - P2 — Obtain fresh SVP API Bearer token for live e2e verification (current Postman token returns 401).

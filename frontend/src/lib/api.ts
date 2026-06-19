@@ -1,13 +1,16 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function getBaseUrl() {
-  if (!SUPABASE_URL) {
-    throw new Error(
-      "VITE_SUPABASE_URL is not set. Configure it in your environment (.env locally, deploy platform vars in production).",
-    );
-  }
-  return `${SUPABASE_URL}/functions/v1`;
+  // Highest priority: explicit backend URL (e.g. Railway).
+  // Used by production deployments that proxy /svp-*, /access-* routes.
+  if (BACKEND_URL) return BACKEND_URL.replace(/\/+$/, "");
+  // Fallback: Supabase Edge Functions (default dev / Emergent preview).
+  if (SUPABASE_URL) return `${SUPABASE_URL}/functions/v1`;
+  throw new Error(
+    "No backend configured. Set VITE_BACKEND_URL (Railway/custom) or VITE_SUPABASE_URL (Supabase functions) in your environment.",
+  );
 }
 
 const BASE = getBaseUrl();
