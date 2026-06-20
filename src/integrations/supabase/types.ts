@@ -249,6 +249,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          prev_refresh_token_hash: string | null
           refresh_expires_at: string
           refresh_token_hash: string
           revoked_at: string | null
@@ -260,6 +261,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          prev_refresh_token_hash?: string | null
           refresh_expires_at: string
           refresh_token_hash: string
           revoked_at?: string | null
@@ -271,6 +273,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          prev_refresh_token_hash?: string | null
           refresh_expires_at?: string
           refresh_token_hash?: string
           revoked_at?: string | null

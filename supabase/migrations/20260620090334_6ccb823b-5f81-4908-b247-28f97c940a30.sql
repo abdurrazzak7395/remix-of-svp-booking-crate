@@ -1,0 +1,1 @@
+ALTER TABLE public.svp_sessions ADD COLUMN IF NOT EXISTS prev_refresh_token_hash TEXT;
