@@ -1,10 +1,13 @@
 {
-  "name": "root",
+  "name": "svp-booking-root",
   "private": true,
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "dev": "npm --prefix frontend run dev -- --port 8080 --host",
-    "build": "npm --prefix frontend run build",
-    "build:dev": "npm --prefix frontend run build:dev",
-    "preview": "npm --prefix frontend run preview"
+    "dev": "npm --workspace vite_react_shadcn_ts run dev -- --port 8080 --host",
+    "build": "npm --workspace vite_react_shadcn_ts run build",
+    "build:dev": "npm --workspace vite_react_shadcn_ts run build:dev",
+    "preview": "npm --workspace vite_react_shadcn_ts run preview"
   }
 }
