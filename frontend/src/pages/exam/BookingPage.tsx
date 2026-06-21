@@ -115,8 +115,11 @@ export default function BookingPage() {
     [sessionsWithResolvedCenters, selectedCenterId]
   );
   const selectedSession = useMemo(
-    () => filteredSessions.find((item) => String(getSessionId(item)) === String(sessionId)) || null,
-    [filteredSessions, sessionId]
+    () =>
+      sessionsWithResolvedCenters.find((item) => String(getSessionId(item)) === String(sessionId)) ||
+      filteredSessions.find((item) => String(getSessionId(item)) === String(sessionId)) ||
+      null,
+    [sessionsWithResolvedCenters, filteredSessions, sessionId]
   );
   const calendarBaseMonth = calendarMonth || (availableDate ? availableDate.slice(0, 7) : normalizeDateValue(new Date().toISOString()).slice(0, 7));
   const calendarCursorDate = useMemo(() => new Date(`${calendarBaseMonth}-01T00:00:00`), [calendarBaseMonth]);
@@ -999,9 +1002,28 @@ export default function BookingPage() {
           </div>
           <div className="field-block">
             <span>Exam Session *</span>
-            <select value={sessionId} onChange={(e) => setSessionId(e.target.value)} disabled={!filteredSessions.length}>
+            <select
+              value={sessionId}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setSessionId(newId);
+                // Sync the Test Center selector to match the session the user
+                // just picked, so the displayed Test Center always reflects
+                // the chosen session (not a stale prior selection).
+                const picked = sessionsWithResolvedCenters.find(
+                  (item) => String(getSessionId(item)) === String(newId)
+                );
+                if (picked) {
+                  const newCenterId = String(getCenterKey(picked) ?? getSessionSiteId(picked) ?? "");
+                  if (newCenterId && newCenterId !== String(selectedCenterId)) {
+                    setSelectedCenterId(newCenterId);
+                  }
+                }
+              }}
+              disabled={!sessionsWithResolvedCenters.length}
+            >
               <option value="">{loadingSessions ? "Loading sessions..." : "Select session"}</option>
-              {filteredSessions.map((item) => {
+              {sessionsWithResolvedCenters.map((item) => {
                 const sid = getSessionSiteId(item);
                 const realName = getResolvedSessionCenterName(item);
                 const seats = item?.available_seats ?? item?.seats_available ?? item?.remaining_seats ?? null;
