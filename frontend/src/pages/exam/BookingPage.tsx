@@ -115,8 +115,11 @@ export default function BookingPage() {
     [sessionsWithResolvedCenters, selectedCenterId]
   );
   const selectedSession = useMemo(
-    () => filteredSessions.find((item) => String(getSessionId(item)) === String(sessionId)) || null,
-    [filteredSessions, sessionId]
+    () =>
+      sessionsWithResolvedCenters.find((item) => String(getSessionId(item)) === String(sessionId)) ||
+      filteredSessions.find((item) => String(getSessionId(item)) === String(sessionId)) ||
+      null,
+    [sessionsWithResolvedCenters, filteredSessions, sessionId]
   );
   const calendarBaseMonth = calendarMonth || (availableDate ? availableDate.slice(0, 7) : normalizeDateValue(new Date().toISOString()).slice(0, 7));
   const calendarCursorDate = useMemo(() => new Date(`${calendarBaseMonth}-01T00:00:00`), [calendarBaseMonth]);
