@@ -151,6 +151,7 @@ export type Database = {
           address: string | null
           city: string | null
           exam_session_id: string
+          exam_session_id_num: number | null
           revealed_at: string
           test_center_id: string
           test_center_name: string
@@ -159,6 +160,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           exam_session_id: string
+          exam_session_id_num?: number | null
           revealed_at?: string
           test_center_id: string
           test_center_name: string
@@ -167,6 +169,7 @@ export type Database = {
           address?: string | null
           city?: string | null
           exam_session_id?: string
+          exam_session_id_num?: number | null
           revealed_at?: string
           test_center_id?: string
           test_center_name?: string
